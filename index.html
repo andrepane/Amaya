@@ -6,30 +6,36 @@
     name="viewport"
     content="width=device-width, initial-scale=1, viewport-fit=cover"
   />
-  <meta name="theme-color" content="#f7f4ef" />
+  <meta name="theme-color" content="#f5efe6" />
   <title>Registro de ataques - Maya</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="app">
+  <div class="app-shell">
     <header class="topbar">
-      <div>
-        <p class="eyebrow">Registro veterinario</p>
+      <div class="topbar__text">
+        <p class="eyebrow">Seguimiento veterinario</p>
         <h1>Registro de ataques de Maya</h1>
+        <p class="subtitle">
+          Registro compartido y sincronizado entre dispositivos.
+        </p>
       </div>
-      <button id="downloadPdfBtn" class="btn btn-primary" type="button">
-        Descargar PDF
-      </button>
+
+      <div class="topbar__actions">
+        <button id="downloadPdfBtn" class="btn btn-primary" type="button">
+          Descargar PDF
+        </button>
+      </div>
     </header>
 
-    <main class="layout">
-      <section class="card form-card">
-        <div class="section-head">
+    <main class="main-layout">
+      <section class="panel">
+        <div class="panel__head">
           <h2>Nuevo evento</h2>
-          <p>Rellena los datos del episodio y guárdalos en el registro.</p>
+          <p>Añade aquí cada episodio para llevar un registro claro.</p>
         </div>
 
-        <form id="eventForm" class="form">
+        <form id="eventForm" class="event-form">
           <div class="field-grid">
             <div class="field">
               <label for="eventDate">Fecha</label>
@@ -54,7 +60,7 @@
               />
             </div>
 
-            <div class="field field-full">
+            <div class="field field--full">
               <label for="triggers">Posibles desencadenantes</label>
               <input
                 id="triggers"
@@ -64,7 +70,7 @@
               />
             </div>
 
-            <div class="field field-full">
+            <div class="field field--full">
               <label for="dailyMedication">Medicación preventiva diaria</label>
               <input
                 id="dailyMedication"
@@ -74,39 +80,41 @@
               />
             </div>
 
-            <div class="field field-full">
-              <label for="rescueMedication">Medicación de rescate</label>
+            <div class="field field--full">
+              <label for="rescueMedication">Medicación rescate</label>
               <input
                 id="rescueMedication"
                 name="rescueMedication"
                 type="text"
-                placeholder="Diazepam 5 mg, media dosis, etc."
+                placeholder="Diazepam, dosis, vía..."
               />
             </div>
 
-            <div class="field field-full">
+            <div class="field field--full">
               <label for="symptoms">Síntomas</label>
               <textarea
                 id="symptoms"
                 name="symptoms"
-                rows="3"
-                placeholder="Espasmos, rigidez, temblores, movimientos faciales, salivación..."
+                rows="4"
+                placeholder="Espasmos, rigidez, temblores, mirada fija, movimientos faciales..."
               ></textarea>
             </div>
 
-            <div class="field field-full">
+            <div class="field field--full">
               <label for="notes">Observaciones</label>
               <textarea
                 id="notes"
                 name="notes"
-                rows="3"
-                placeholder="Estado previo, recuperación, si estaba dormida, si comió antes, etc."
+                rows="4"
+                placeholder="Estado previo, recuperación, si estaba dormida, si había comido, etc."
               ></textarea>
             </div>
           </div>
 
           <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Guardar evento</button>
+            <button type="submit" class="btn btn-primary" id="saveBtn">
+              Guardar evento
+            </button>
             <button type="reset" class="btn btn-secondary" id="resetBtn">
               Limpiar
             </button>
@@ -114,66 +122,77 @@
         </form>
       </section>
 
-      <section class="card summary-card">
-        <div class="section-head">
+      <section class="panel">
+        <div class="panel__head">
           <h2>Resumen</h2>
-          <p>Vista rápida del seguimiento.</p>
+          <p>Vista rápida del seguimiento actual.</p>
         </div>
 
-        <div class="summary-grid">
-          <article class="mini-stat">
-            <span class="mini-stat__label">Total eventos</span>
+        <div class="stats-grid">
+          <article class="stat-card">
+            <span class="stat-card__label">Total eventos</span>
             <strong id="totalEvents">0</strong>
           </article>
 
-          <article class="mini-stat">
-            <span class="mini-stat__label">Último evento</span>
+          <article class="stat-card">
+            <span class="stat-card__label">Último evento</span>
             <strong id="lastEventText">—</strong>
           </article>
 
-          <article class="mini-stat">
-            <span class="mini-stat__label">Tiempo desde el último</span>
+          <article class="stat-card">
+            <span class="stat-card__label">Tiempo desde el último</span>
             <strong id="timeSinceLastNow">—</strong>
+          </article>
+
+          <article class="stat-card">
+            <span class="stat-card__label">Estado de sincronización</span>
+            <strong id="syncStatus">Conectando...</strong>
           </article>
         </div>
       </section>
 
-      <section class="card table-card">
-        <div class="section-head table-head">
+      <section class="panel">
+        <div class="panel__head panel__head--row">
           <div>
             <h2>Eventos registrados</h2>
-            <p>Los datos se guardan en este dispositivo.</p>
+            <p>Se muestran del más reciente al más antiguo.</p>
           </div>
 
-          <div class="table-actions">
-            <button id="clearAllBtn" class="btn btn-danger" type="button">
-              Borrar todo
-            </button>
+          <button id="clearAllBtn" class="btn btn-danger" type="button">
+            Borrar todo
+          </button>
+        </div>
+
+        <div class="desktop-table">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Desde el anterior</th>
+                  <th>Hora</th>
+                  <th>Duración</th>
+                  <th>Desencadenantes</th>
+                  <th>Prevención</th>
+                  <th>Rescate</th>
+                  <th>Síntomas</th>
+                  <th>Observaciones</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody id="eventsTableBody">
+                <tr class="empty-row">
+                  <td colspan="10">Todavía no hay eventos guardados.</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Fecha</th>
-                <th>Desde el último</th>
-                <th>Hora</th>
-                <th>Duración</th>
-                <th>Desencadenantes</th>
-                <th>Prevención</th>
-                <th>Rescate</th>
-                <th>Síntomas</th>
-                <th>Observaciones</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="eventsTableBody">
-              <tr class="empty-row">
-                <td colspan="10">Todavía no hay eventos guardados.</td>
-              </tr>
-            </tbody>
-          </table>
+        <div id="mobileCards" class="mobile-cards">
+          <article class="mobile-empty">
+            Todavía no hay eventos guardados.
+          </article>
         </div>
       </section>
     </main>
@@ -181,6 +200,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-  <script src="app.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
