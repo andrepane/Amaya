@@ -4,10 +4,18 @@
   <meta charset="UTF-8" />
   <meta
     name="viewport"
-    content="width=device-width, initial-scale=1, viewport-fit=cover"
+    content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1"
   />
   <meta name="theme-color" content="#f5efe6" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Maya" />
+
   <title>Registro de ataques - Maya</title>
+
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -15,7 +23,7 @@
     <header class="topbar">
       <div class="topbar__text">
         <p class="eyebrow">Seguimiento veterinario</p>
-        <h1>Registro de ataques de Maya</h1>
+        <h1>Registro de Maya</h1>
         <p class="subtitle">
           Registro compartido y sincronizado entre dispositivos.
         </p>
@@ -32,11 +40,29 @@
       <section class="panel">
         <div class="panel__head">
           <h2>Nuevo evento</h2>
-          <p>Añade aquí cada episodio para llevar un registro claro.</p>
+          <p>Añade ataques o eventos extra importantes.</p>
         </div>
 
         <form id="eventForm" class="event-form">
           <div class="field-grid">
+            <div class="field">
+              <label for="eventType">Tipo de evento</label>
+              <select id="eventType" name="eventType" required>
+                <option value="attack">Ataque</option>
+                <option value="extra">Evento extra</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="extraTitle">Título del evento extra</label>
+              <input
+                id="extraTitle"
+                name="extraTitle"
+                type="text"
+                placeholder="Ej. subida de fenobarbital, TAC..."
+              />
+            </div>
+
             <div class="field">
               <label for="eventDate">Fecha</label>
               <input id="eventDate" name="eventDate" type="date" required />
@@ -56,7 +82,6 @@
                 min="0"
                 step="0.5"
                 placeholder="Ej. 2"
-                required
               />
             </div>
 
@@ -101,12 +126,12 @@
             </div>
 
             <div class="field field--full">
-              <label for="notes">Observaciones</label>
+              <label for="notes">Observaciones / información extra</label>
               <textarea
                 id="notes"
                 name="notes"
                 rows="4"
-                placeholder="Estado previo, recuperación, si estaba dormida, si había comido, etc."
+                placeholder="Estado previo, recuperación, TAC, cambio de dosis, indicaciones, etc."
               ></textarea>
             </div>
           </div>
@@ -140,12 +165,12 @@
           </article>
 
           <article class="stat-card">
-            <span class="stat-card__label">Tiempo desde el último</span>
+            <span class="stat-card__label">Tiempo desde el último ataque</span>
             <strong id="timeSinceLastNow">—</strong>
           </article>
 
           <article class="stat-card">
-            <span class="stat-card__label">Estado de sincronización</span>
+            <span class="stat-card__label">Sincronización</span>
             <strong id="syncStatus">Conectando...</strong>
           </article>
         </div>
@@ -155,7 +180,7 @@
         <div class="panel__head panel__head--row">
           <div>
             <h2>Eventos registrados</h2>
-            <p>Se muestran del más reciente al más antiguo.</p>
+            <p>Orden cronológico, de más antiguo a más reciente.</p>
           </div>
 
           <button id="clearAllBtn" class="btn btn-danger" type="button">
@@ -168,10 +193,12 @@
             <table>
               <thead>
                 <tr>
+                  <th>Tipo</th>
                   <th>Fecha</th>
-                  <th>Desde el anterior</th>
+                  <th>Desde el anterior ataque</th>
                   <th>Hora</th>
                   <th>Duración</th>
+                  <th>Título</th>
                   <th>Desencadenantes</th>
                   <th>Prevención</th>
                   <th>Rescate</th>
@@ -182,7 +209,7 @@
               </thead>
               <tbody id="eventsTableBody">
                 <tr class="empty-row">
-                  <td colspan="10">Todavía no hay eventos guardados.</td>
+                  <td colspan="12">Todavía no hay eventos guardados.</td>
                 </tr>
               </tbody>
             </table>
