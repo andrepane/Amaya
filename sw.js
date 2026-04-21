@@ -1,4 +1,4 @@
-const CACHE_NAME = "maya-app-v1";
+const CACHE_NAME = "maya-app-v2";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -30,14 +30,32 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
+  const requestUrl = new URL(event.request.url);
+  const isAppShellRequest =
+    requestUrl.origin === self.location.origin &&
+    APP_SHELL.some((asset) => requestUrl.pathname.endsWith(asset.replace("./", "/")));
+
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      return (
-        cached ||
-        fetch(event.request).catch(() => {
-          return caches.match("./index.html");
-        })
-      );
-    })
+    (async () => {
+      if (isAppShellRequest) {
+        try {
+          const freshResponse = await fetch(event.request);
+          const cache = await caches.open(CACHE_NAME);
+          cache.put(event.request, freshResponse.clone());
+          return freshResponse;
+        } catch (error) {
+          return caches.match(event.request) || caches.match("./index.html");
+        }
+      }
+
+      const cached = await caches.match(event.request);
+      if (cached) return cached;
+
+      try {
+        return await fetch(event.request);
+      } catch (error) {
+        return caches.match("./index.html");
+      }
+    })()
   );
 });
