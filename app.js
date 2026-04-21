@@ -48,6 +48,7 @@ const dailyChecklistEl = document.getElementById("dailyChecklist");
 const newDailyItemInput = document.getElementById("newDailyItem");
 const addDailyItemBtn = document.getElementById("addDailyItemBtn");
 const saveDailyBtn = document.getElementById("saveDailyBtn");
+const cancelDailyEditBtn = document.getElementById("cancelDailyEditBtn");
 const dailyLogsListEl = document.getElementById("dailyLogsList");
 
 const eventsTableBody = document.getElementById("eventsTableBody");
@@ -72,6 +73,7 @@ let dailyLogs = [];
 let unsubscribeEvents = null;
 let unsubscribeDailyItems = null;
 let unsubscribeDailyLogs = null;
+let editingDailyLogDate = null;
 
 init();
 
@@ -101,6 +103,7 @@ function bindEvents() {
   dailyForm.addEventListener("submit", handleDailySubmit);
   addDailyItemBtn.addEventListener("click", handleAddDailyItem);
   dailyDateInput.addEventListener("change", renderDailyFormValues);
+  cancelDailyEditBtn.addEventListener("click", resetDailyFormToToday);
   setInterval(updateLiveTimeSinceLast, 60000);
 }
 
@@ -396,6 +399,8 @@ function renderDailyFormValues() {
   if (!dateValue || !dailyItems.length) return;
 
   const selectedLog = dailyLogs.find((item) => item.date === dateValue);
+  editingDailyLogDate = selectedLog ? selectedLog.date : null;
+  updateDailyFormActionState();
   dailyItems.forEach((item) => {
     const select = document.querySelector(`#daily-item-${item.id}`);
     if (!select) return;
@@ -414,13 +419,39 @@ function renderDailyLogsList() {
     .slice(0, 10)
     .map((item) => `
       <article class="daily-log-card">
-        <div>
+        <div class="daily-log-card__content">
           <strong>${escapeHtml(item.date)}</strong>
           <p>Media: ${Number(item.average).toFixed(2)} / 5</p>
+        </div>
+        <div class="row-actions">
+          <button
+            class="icon-btn"
+            type="button"
+            onclick="window.editDailyLogByDate('${item.date}')"
+            aria-label="Editar resumen ${escapeHtml(item.date)}"
+            title="Editar resumen"
+          >
+            ✏️
+          </button>
+          <button
+            class="icon-btn delete"
+            type="button"
+            onclick="window.deleteDailyLogByDate('${item.date}')"
+            aria-label="Eliminar resumen ${escapeHtml(item.date)}"
+            title="Eliminar resumen"
+          >
+            🗑️
+          </button>
         </div>
       </article>
     `)
     .join("");
+}
+
+function updateDailyFormActionState() {
+  const isEditing = Boolean(editingDailyLogDate);
+  cancelDailyEditBtn.hidden = !isEditing;
+  saveDailyBtn.textContent = isEditing ? "Actualizar resumen del día" : "Guardar resumen del día";
 }
 
 async function handleAddDailyItem() {
@@ -494,14 +525,45 @@ async function handleDailySubmit(event) {
       average,
       updatedAt: new Date().toISOString()
     });
-    showToast("Resumen del día guardado.");
+    showToast(editingDailyLogDate ? "Resumen del día actualizado." : "Resumen del día guardado.");
+    editingDailyLogDate = date;
+    updateDailyFormActionState();
   } catch (error) {
     console.error(error);
     showToast("No se ha podido guardar el resumen diario.");
   } finally {
     saveDailyBtn.disabled = false;
-    saveDailyBtn.textContent = "Guardar resumen del día";
+    saveDailyBtn.textContent = editingDailyLogDate ? "Actualizar resumen del día" : "Guardar resumen del día";
   }
+}
+
+function handleEditDailyLog(date) {
+  dailyDateInput.value = date;
+  renderDailyFormValues();
+  showToast(`Editando resumen del ${date}.`);
+}
+
+async function handleDeleteDailyLog(date) {
+  const ok = window.confirm(`¿Eliminar el resumen del ${date}?`);
+  if (!ok) return;
+
+  try {
+    await deleteDoc(doc(db, DAILY_LOGS_COLLECTION, date));
+    if (editingDailyLogDate === date) {
+      resetDailyFormToToday();
+    }
+    showToast("Resumen diario eliminado.");
+  } catch (error) {
+    console.error(error);
+    showToast("No se ha podido eliminar el resumen diario.");
+  }
+}
+
+function resetDailyFormToToday() {
+  editingDailyLogDate = null;
+  setDefaultDailyDate();
+  renderDailyFormValues();
+  updateDailyFormActionState();
 }
 
 function renderDesktopTable() {
@@ -869,3 +931,5 @@ async function registerServiceWorker() {
 }
 
 window.deleteEventById = handleDelete;
+window.editDailyLogByDate = handleEditDailyLog;
+window.deleteDailyLogByDate = handleDeleteDailyLog;
